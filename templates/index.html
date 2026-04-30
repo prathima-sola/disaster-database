@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Global Disaster Database{% endblock %}
+{% block content %}
+<h1 class="page-title">Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+        <div class="stat-value">{{ "{:,}".format(stats.total_disasters) }}</div>
+        <div class="stat-label">Total Disaster Events</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-flag"></i></div>
+        <div class="stat-value">{{ stats.total_countries }}</div>
+        <div class="stat-label">Countries Covered</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-skull-crossbones"></i></div>
+        <div class="stat-value">{{ "{:,.0f}".format(stats.total_deaths) }}</div>
+        <div class="stat-label">Total Recorded Deaths</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-value">${{ stats.total_damage }}B</div>
+        <div class="stat-label">Economic Damage (USD)</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Disaster Trends by Decade</h2>
+        <canvas id="decadeChart"></canvas>
+    </div>
+    <div class="card">
+        <h2>Top 10 Affected Countries</h2>
+        <canvas id="countriesChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Disaster Events</h2>
+    <table class="data-table">
+        <thead>
+            <tr><th>Year</th><th>Type</th><th>Country</th><th>Location</th><th>Deaths</th><th>Affected</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for r in recent %}
+            <tr>
+                <td>{{ r.year }}</td>
+                <td><span class="badge">{{ r.type_name }}</span></td>
+                <td>{{ r.country_name }}</td>
+                <td>{{ r.location or '—' }}</td>
+                <td class="num">{{ "{:,}".format(r.total_deaths) }}</td>
+                <td class="num">{{ "{:,}".format(r.total_affected) }}</td>
+                <td><a href="{{ url_for('disaster_detail', disaster_id=r.disaster_id) }}" class="btn btn-sm">View</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Decade trends chart -- Author: Krishna Koushik Thokala
+fetch('/api/decade_trends').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('decadeChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.decade + 's'),
+            datasets: [{
+                label: 'Number of Events',
+                data: data.map(d => d.events),
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } } }
+    });
+});
+
+// Top countries chart -- Author: Prathima Sola
+fetch('/api/top_countries').then(r=>r.json()).then(data => {
+    const top10 = data.slice(0, 10);
+    new Chart(document.getElementById('countriesChart'), {
+        type: 'bar',
+        data: {
+            labels: top10.map(d => d.country_name),
+            datasets: [{
+                label: 'Disaster Events',
+                data: top10.map(d => d.count),
+                backgroundColor: '#ef4444',
+                borderRadius: 4
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true,
+            plugins: { legend: { display: false } } }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Explore Disasters{% endblock %}
+{% block content %}
+<h1 class="page-title">Explore Disasters</h1>
+
+<div class="card">
+    <div class="filters">
+        <div class="filter-group">
+            <label>Country</label>
+            <select id="filterCountry"><option value="">All Countries</option>
+            {% for c in countries %}<option value="{{ c.country_id }}">{{ c.country_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Disaster Type</label>
+            <select id="filterType"><option value="">All Types</option>
+            {% for t in types %}<option value="{{ t.type_name }}">{{ t.type_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Year From</label>
+            <input type="number" id="filterYearFrom" value="1900" min="1900" max="2021">
+        </div>
+        <div class="filter-group">
+            <label>Year To</label>
+            <input type="number" id="filterYearTo" value="2021" min="1900" max="2021">
+        </div>
+        <div class="filter-group">
+            <label>Keyword</label>
+            <input type="text" id="filterKeyword" placeholder="Search events...">
+        </div>
+        <div class="filter-group">
+            <button class="btn btn-primary" onclick="searchDisasters()"><i class="fas fa-search"></i> Search</button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div id="resultCount" class="result-count"></div>
+    <table class="data-table" id="resultsTable">
+        <thead>
+            <tr><th>Year</th><th>Type</th><th>Country</th><th>Location</th><th>Deaths</th><th>Affected</th><th>Damage ($K)</th><th></th></tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function searchDisasters() {
+    const params = new URLSearchParams();
+    const country = document.getElementById('filterCountry').value;
+    const type = document.getElementById('filterType').value;
+    const yearFrom = document.getElementById('filterYearFrom').value;
+    const yearTo = document.getElementById('filterYearTo').value;
+    const keyword = document.getElementById('filterKeyword').value;
+    if (country) params.set('country_id', country);
+    if (type) params.set('type_name', type);
+    if (yearFrom) params.set('year_from', yearFrom);
+    if (yearTo) params.set('year_to', yearTo);
+    if (keyword) params.set('keyword', keyword);
+
+    fetch('/api/search?' + params).then(r => r.json()).then(data => {
+        document.getElementById('resultCount').textContent = data.length + ' results found';
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = data.map(d => `
+            <tr>
+                <td>${d.year}</td>
+                <td><span class="badge">${d.type_name}</span></td>
+                <td>${d.country_name}</td>
+                <td>${d.location || '—'}</td>
+                <td class="num">${(d.total_deaths || 0).toLocaleString()}</td>
+                <td class="num">${(d.total_affected || 0).toLocaleString()}</td>
+                <td class="num">${(d.total_damage_usd || 0).toLocaleString()}</td>
+                <td><a href="/disaster/${d.disaster_id}" class="btn btn-sm">View</a></td>
+            </tr>
+        `).join('');
+    });
+}
+// Load initial results
+searchDisasters();
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Analytics — Global Disaster Database{% endblock %}
+{% block content %}
+<h1 class="page-title">Analytics Dashboard</h1>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Disaster Types Distribution</h2>
+        <canvas id="typeChart"></canvas>
+    </div>
+    <div class="card">
+        <h2>Monthly Seasonal Patterns</h2>
+        <canvas id="monthChart"></canvas>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Impact by Income Group (1990+)</h2>
+        <canvas id="incomeChart"></canvas>
+    </div>
+    <div class="card">
+        <h2>Flood Frequency Trend (1970+)</h2>
+        <canvas id="floodChart"></canvas>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Disasters by Continent</h2>
+        <canvas id="continentChart"></canvas>
+    </div>
+    <div class="card">
+        <h2>Top 15 Countries by Disaster Count</h2>
+        <canvas id="topCountriesChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COLORS = ['#3b82f6','#ef4444','#f59e0b','#10b981','#8b5cf6','#ec4899','#06b6d4',
+                '#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#a855f7','#0ea5e9','#65a30d'];
+
+// Type distribution -- Author: Prathima Sola
+fetch('/api/type_distribution').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.type_name),
+            datasets: [{ data: data.map(d => d.count), backgroundColor: COLORS }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+    });
+});
+
+// Monthly pattern -- Author: Anirudh Sukumaran
+fetch('/api/monthly_pattern').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('monthChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => MONTHS[d.month - 1]),
+            datasets: [{ label: 'Events', data: data.map(d => d.count), backgroundColor: '#3b82f6', borderRadius: 4 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+});
+
+// Income group -- Author: Prathima Sola
+fetch('/api/income_impact').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('incomeChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.income_group),
+            datasets: [
+                { label: 'Avg Deaths/Event', data: data.map(d => d.avg_deaths), backgroundColor: '#ef4444', borderRadius: 4 },
+                { label: 'Events (x10)', data: data.map(d => d.count/10), backgroundColor: '#3b82f680', borderRadius: 4 }
+            ]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+});
+
+// Flood trend -- Author: Prathima Sola
+fetch('/api/flood_trend').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('floodChart'), {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.year),
+            datasets: [{
+                label: 'Flood Events', data: data.map(d => d.count),
+                borderColor: '#3b82f6', backgroundColor: '#3b82f620',
+                fill: true, tension: 0.3, pointRadius: 1
+            }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+});
+
+// Continent chart -- Author: Krishna Koushik Thokala
+fetch('/api/continent_data').then(r=>r.json()).then(data => {
+    const byContinent = {};
+    data.forEach(d => {
+        if (!byContinent[d.continent]) byContinent[d.continent] = { count: 0, deaths: 0 };
+        byContinent[d.continent].count += d.count;
+        byContinent[d.continent].deaths += d.deaths;
+    });
+    const labels = Object.keys(byContinent);
+    const counts = labels.map(l => byContinent[l].count);
+    new Chart(document.getElementById('continentChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Disaster Events', data: counts, backgroundColor: COLORS.slice(0, labels.length), borderRadius: 4 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+});
+
+// Top countries -- Author: Prathima Sola
+fetch('/api/top_countries').then(r=>r.json()).then(data => {
+    new Chart(document.getElementById('topCountriesChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.country_name),
+            datasets: [{ label: 'Events', data: data.map(d => d.count), backgroundColor: '#ef4444', borderRadius: 4 }]
+        },
+        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+    });
+});
+</script>
+{% endblock %}

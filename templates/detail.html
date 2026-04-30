@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ d.type_name }} — {{ d.country_name }} ({{ d.year }}){% endblock %}
+{% block content %}
+<div class="detail-header">
+    <h1>{{ d.type_name }} — {{ d.country_name }} ({{ d.year }})</h1>
+    <div class="detail-actions">
+        <a href="{{ url_for('edit_disaster', disaster_id=d.disaster_id) }}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit</a>
+        <form action="{{ url_for('delete_disaster', disaster_id=d.disaster_id) }}" method="POST" style="display:inline"
+              onsubmit="return confirm('Are you sure you want to delete this disaster record?')">
+            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+        </form>
+        <a href="{{ url_for('explore') }}" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Event Information</h2>
+        <dl class="detail-list">
+            <dt>Disaster Type</dt><dd>{{ d.type_name }}{% if d.subtype_name and d.subtype_name != 'General' %} — {{ d.subtype_name }}{% endif %}</dd>
+            <dt>Country</dt><dd>{{ d.country_name }} ({{ d.iso_code }})</dd>
+            <dt>Region</dt><dd>{{ d.region_name }}, {{ d.continent }}</dd>
+            <dt>Year</dt><dd>{{ d.year }}{% if d.start_month %}/{{ d.start_month }}{% if d.start_day %}/{{ d.start_day }}{% endif %}{% endif %}</dd>
+            {% if d.location %}<dt>Location</dt><dd>{{ d.location }}</dd>{% endif %}
+        </dl>
+    </div>
+    <div class="card">
+        <h2>Impact Summary</h2>
+        <dl class="detail-list">
+            <dt>Total Deaths</dt><dd class="stat-highlight">{{ "{:,}".format(d.total_deaths or 0) }}</dd>
+            <dt>Total Affected</dt><dd>{{ "{:,}".format(d.total_affected or 0) }}</dd>
+            <dt>Economic Damage</dt><dd>${{ "{:,.0f}".format(d.total_damage_usd or 0) }}K</dd>
+            {% if d.no_injured %}<dt>Injured</dt><dd>{{ "{:,}".format(d.no_injured) }}</dd>{% endif %}
+            {% if d.no_homeless %}<dt>Homeless</dt><dd>{{ "{:,}".format(d.no_homeless) }}</dd>{% endif %}
+        </dl>
+        <h3>Country Context</h3>
+        <dl class="detail-list">
+            {% if d.gdp_per_capita %}<dt>GDP per Capita</dt><dd>${{ "{:,.0f}".format(d.gdp_per_capita) }}</dd>{% endif %}
+            {% if d.income_group %}<dt>Income Group</dt><dd>{{ d.income_group }}</dd>{% endif %}
+        </dl>
+    </div>
+</div>
+{% endblock %}

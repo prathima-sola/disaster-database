@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Add Disaster Event{% endblock %}
+{% block content %}
+<h1 class="page-title">Add New Disaster Event</h1>
+<div class="card">
+    <form method="POST" class="form-grid">
+        <div class="form-group">
+            <label for="country_id">Country *</label>
+            <select name="country_id" id="country_id" required>
+                <option value="">Select country...</option>
+                {% for c in countries %}<option value="{{ c.country_id }}">{{ c.country_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="type_id">Disaster Type *</label>
+            <select name="type_id" id="type_id" required>
+                <option value="">Select type...</option>
+                {% for t in types %}<option value="{{ t.type_id }}">{{ t.type_name }} — {{ t.subtype_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="year">Year *</label>
+            <input type="number" name="year" id="year" required min="1900" max="2100">
+        </div>
+        <div class="form-group">
+            <label for="start_month">Month</label>
+            <input type="number" name="start_month" id="start_month" min="1" max="12">
+        </div>
+        <div class="form-group">
+            <label for="start_day">Day</label>
+            <input type="number" name="start_day" id="start_day" min="1" max="31">
+        </div>
+        <div class="form-group full-width">
+            <label for="location">Location</label>
+            <input type="text" name="location" id="location" placeholder="e.g., Gulf Coast, Louisiana">
+        </div>
+        <div class="form-group">
+            <label for="total_deaths">Total Deaths</label>
+            <input type="number" name="total_deaths" id="total_deaths" value="0" min="0">
+        </div>
+        <div class="form-group">
+            <label for="total_affected">Total Affected</label>
+            <input type="number" name="total_affected" id="total_affected" value="0" min="0">
+        </div>
+        <div class="form-group">
+            <label for="total_damage_usd">Total Damage ($K USD)</label>
+            <input type="number" name="total_damage_usd" id="total_damage_usd" value="0" min="0" step="0.01">
+        </div>
+        <h3 class="full-width" style="margin-top:1rem;">Detailed Impact Metrics</h3>
+        <div class="form-group">
+            <label for="no_injured">Number Injured</label>
+            <input type="number" name="no_injured" id="no_injured" value="0" min="0">
+        </div>
+        <div class="form-group">
+            <label for="no_affected_detail">Number Affected (detail)</label>
+            <input type="number" name="no_affected_detail" id="no_affected_detail" value="0" min="0">
+        </div>
+        <div class="form-group">
+            <label for="no_homeless">Number Homeless</label>
+            <input type="number" name="no_homeless" id="no_homeless" value="0" min="0">
+        </div>
+        <div class="form-actions full-width">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Event</button>
+            <a href="{{ url_for('explore') }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
