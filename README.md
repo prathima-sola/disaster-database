@@ -35,5 +35,4 @@ python app.py              # Runs on http://localhost:5000
 
 ## AI Acknowledgement
 - Tool: Claude, by Anthropic (Claude Opus 4.6)
-- Date accessed: April 2026
 - Scope: Database schema design, SQL query generation, data preprocessing, documentation
